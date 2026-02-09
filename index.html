@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Геометрия 9 класс тест</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f9fafb;color:#111;margin:0;padding:20px;} h1{font-size:20px;margin-bottom:10px;} label{display:block;margin-top:10px;} select,button{width:100%;padding:8px;margin-top:5px;font-size:16px;} button{background:#2563eb;color:white;border:none;cursor:pointer;} button:disabled{background:#9ca3af;cursor:default;} #quiz,#result{margin-top:20px;} #question{font-size:18px;margin-bottom:10px;} .opt{display:block;background:#e5e7eb;border:none;padding:8px;margin-bottom:6px;border-radius:4px;text-align:left;cursor:pointer;} .selected{outline:2px solid #60a5fa;} .correct{background:#a7f3d0;} .wrong{background:#fecaca;} #timer{font-weight:bold;text-align:right;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<h1>Геометрия: 9 класс</h1>
+<label>Вариант:
+<select id="variant"></select>
+</label>
+<label>Режим:
+<select id="mode">
+<option value="exam">Экзамен (таймер)</option>
+<option value="train">Тренировка</option>
+</select>
+</label>
+<button id="start">Начать</button>
+<div id="quiz" style="display:none;">
+<div id="timer"></div>
+<div id="question"></div>
+<div id="answers"></div>
+<button id="next" disabled>Далее</button>
+</div>
+<div id="result" style="display:none;"></div>
+<script>
+// заполнение вариантов
+for(let i=1;i<=100;i++){variant.innerHTML+=`<option value="${i}">Вариант ${i}</option>`;}
+// псевдо-случайный генератор на основе seed
+function seeded(seed){let s=seed;return function(){s=Math.sin(s)*10000;return s-Math.floor(s);} }
+function randint(r,a,b){return Math.floor(r()*(b-a+1))+a;}
+function shuffle(r,a){for(let i=a.length-1;i>0;i--){let j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// генераторы вопросов
+function qPyth(r){let a=randint(r,3,10),b=randint(r,3,10),c=Math.round(Math.sqrt(a*a+b*b));let opts=shuffle(r,[c,c+randint(r,1,4),Math.max(1,c-randint(r,1,3))]);return{t:`Катеты ${a} и ${b}. Найдите гипотенузу.`,opts:opts.map(String),ans:String(c)};}
+function qAreaTri(r){let base=randint(r,5,15),h=randint(r,3,10),correct=base*h/2;let opts=shuffle(r,[correct,correct+base,Math.max(1,correct-h)]);return{t:`Основание ${base}, высота ${h}. Найдите площадь треугольника.`,opts:opts.map(x=>String(Math.round(x))),ans:String(Math.round(correct))};}
+function qAngleSum(r){let a=randint(r,30,80),b=randint(r,30,80),c=180-a-b;let opts=shuffle(r,[c,c+10,c-10]);return{t:`Углы ${a}° и ${b}°. Найдите третий угол.`,opts:opts.map(x=>x+"°"),ans:`${c}°`};}
+function qParallel(r){let type=randint(r,0,2);if(type===0){let x=randint(r,30,150);let opts=shuffle(r,[x,x+20,x-20]);return{t:`Угол ${x}°. Найдите соответствующий угол между параллельными прямыми.`,opts:opts.map(x=>x+"°"),ans:`${x}°`};}else{let a=randint(r,40,140);let c=180-a;let opts=shuffle(r,[c,(c+20)%180||180,Math.abs(c-20)||20]);return{t:`Односторонний внутренний угол ${a}°. Найдите другой односторонний угол.`,opts:opts.map(x=>x+"°"),ans:`${c}°`};}}
+function qSimilarity(r){let k=randint(r,2,4),small=randint(r,3,8),other=randint(r,4,10),big=small*k,correct=other*k;let opts=shuffle(r,[correct,correct+k,Math.max(1,correct-k)]);return{t:`Сторона первого треугольника ${small}, соответствующая сторона второго ${big}. Если другая сторона первого ${other}, найдите соответствующую сторону второго.`,opts:opts.map(String),ans:String(correct)};}
+function qCircle(r){let rad=randint(r,2,8),what=randint(r,0,1),pi=3.14;if(what===0){let correct=2*pi*rad;let opts=shuffle(r,[correct,correct+pi*rad,Math.max(0.1,correct-pi*rad)]);return{t:`Радиус ${rad}. Найдите длину окружности (π=3,14).`,opts:opts.map(x=>String(Math.round(x*100)/100)),ans:String(Math.round(correct*100)/100)};}else{let correct=pi*rad*rad;let opts=shuffle(r,[correct,correct+pi*rad,Math.max(0.1,correct-pi*rad)]);return{t:`Радиус ${rad}. Найдите площадь круга (π=3,14).`,opts:opts.map(x=>String(Math.round(x*100)/100)),ans:String(Math.round(correct*100)/100)};}}
+function qMidline(r){let base=randint(r,6,20)*2,correct=base/2;let opts=shuffle(r,[correct,correct+2,Math.max(1,correct-2)]);return{t:`Основание треугольника ${base}. Найдите среднюю линию, параллельную основанию.`,opts:opts.map(String),ans:String(correct)};}
+function qDist(r){let dx=3,dy=4,x1=randint(r,-6,6),y1=randint(r,-6,6),x2=x1+(randint(r,0,1)?dx:-dx),y2=y1+(randint(r,0,1)?dy:-dy),d=5;let opts=shuffle(r,[d,d+1,Math.max(1,d-1)]);return{t:`Найдите расстояние между точками A(${x1};${y1}) и B(${x2};${y2}).`,opts:opts.map(String),ans:String(d)};}
+function qParallelogram(r){let a=randint(r,4,12),h=randint(r,3,10),correct=a*h;let opts=shuffle(r,[correct,correct+a,Math.max(1,correct-h)]);return{t:`Сторона параллелограмма ${a}, высота ${h}. Найдите площадь параллелограмма.`,opts:opts.map(String),ans:String(correct)};}
+function qInscribed(r){let arc=randint(r,60,150);let correct=Math.floor(arc/2);let opts=shuffle(r,[correct,correct+10,Math.max(10,correct-10)]);return{t:`Дуга ${arc}°. Найдите вписанный угол.`,opts:opts.map(x=>x+"°"),ans:`${correct}°`};}
+const generators=[qPyth,qAreaTri,qAngleSum,qParallel,qSimilarity,qCircle,qMidline,qDist,qParallelogram,qInscribed];
+let questions=[],idx=0,correctCount=0,mode='exam',timerId=null,timeLeft=180;
+const modeSelect=document.getElementById('mode');
+start.onclick=function(){let v=parseInt(variant.value);mode=modeSelect.value;let rng=seeded(v*12345);questions=generators.map(fn=>fn(rng));idx=0;correctCount=0;showQuestion();quiz.style.display='block';result.style.display='none';start.disabled=true;};
+function showQuestion(){let q=questions[idx];question.textContent=q.t;answers.innerHTML='';q.opts.forEach((opt,i)=>{let b=document.createElement('button');b.textContent=String.fromCharCode(65+i)+') '+opt;b.className='opt';b.onclick=function(){if(document.querySelector('.selected')) return; b.classList.add('selected');next.disabled=false;b.dataset.chosen=i;};answers.appendChild(b);});if(mode=='exam'){timeLeft=180;timer.textContent='03:00';timer.style.display='block';timerId=setInterval(()=>{timeLeft--;let m=Math.floor(timeLeft/60),s=timeLeft%60;timer.textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;if(timeLeft<=0){clearInterval(timerId);nextQuestion();}},1000);}else{timer.style.display='none';}}
+next.onclick=nextQuestion;
+function nextQuestion(){if(timerId){clearInterval(timerId);}let chosenBtn=document.querySelector('.selected');let q=questions[idx];if(chosenBtn){let chosen=parseInt(chosenBtn.dataset.chosen);if(q.opts[chosen]==q.ans){chosenBtn.classList.add('correct');correctCount++;}else{chosenBtn.classList.add('wrong');// highlight correct
+let iCorrect=q.opts.indexOf(q.ans);
+answers.children[iCorrect].classList.add('correct');}}
+idx++;next.disabled=true;setTimeout(()=>{if(idx<questions.length){showQuestion();}else{finish();}},300);} 
+function finish(){quiz.style.display='none';start.disabled=false;result.style.display='block';result.textContent=`\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0445 \u043e\u0442\u0432\u0435\u0442\u043e\u0432: ${correctCount} \u0438\u0437 ${questions.length}. \u041f\u0440\u043e\u0446\u0435\u043d\u0442: ${Math.round(correctCount/questions.length*100)}%`;}
+</script>
+</body>
+</html>  
